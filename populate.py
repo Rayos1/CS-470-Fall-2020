@@ -1,6 +1,8 @@
-import random, datetime
+import os, random, datetime
+import numpy as np
 import mysql.connector as sql
 
+os.chdir(__file__[:-11])
 SEED = random.randint(0, 99)
 DATAB = sql.connect(
     host='db-mgmt-project.cl1fxv47tqrh.us-east-2.rds.amazonaws.com',
@@ -27,10 +29,11 @@ def make_patient(ratio):
 
     first_name, last_name = get_name()
     age = random.randint(5, 105)
-    status = random.choices(
-        [i for i in range(7)],
-        []
-        )
+    status = random.randint(0, 7)
+    # status = random.choices(
+    #     [i for i in range(7)],
+    #     []
+    #     )
 
     return first_name, last_name, age, status
 
@@ -383,20 +386,16 @@ SELECT = '''SELECT COUNT(patient_id), capacity FROM patient JOIN hospital ON pat
 table = 'patient(hospital_id, first_name, last_name, age, status)'
 CURSOR.execute(f'SELECT hospital_id FROM hospital WHERE zip_code LIKE "__{SEED:02}_"')
 hospital_ids = CURSOR.fetchall()
-distribution = (
-    [i/10 for i in range(0, 101, 2)],
-    []
-    )
 
 for i in range(100000):
     
     hospital_id = random.choice(hospital_ids)
-    CURSOR.execute(SELECT.format(hospital_id))
+    CURSOR.execute(SELECT.format(*hospital_id))
     occupancy, capacity = CURSOR.fetchone()
-    ratio = capacity / occupancy
+    ratio = occupancy / capacity
     row = hospital_id + make_patient(ratio)
 
-    if ratio < random.choice(*distribution):
+    if ratio < abs(np.random.normal(.7, .3, 1)) % 1:
         CURSOR.execute(f'INSERT INTO {table} VALUES{row}')
         DATAB.commit()
 
