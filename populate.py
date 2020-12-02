@@ -4,13 +4,8 @@ import mysql.connector as sql
 
 os.chdir(__file__[:-11])
 SEED = random.randint(0, 99)
-DATAB = sql.connect(
-    host='db-mgmt-project.cl1fxv47tqrh.us-east-2.rds.amazonaws.com',
-    database='db_mgmt_project',
-    user='admin',
-    password='Str0nG_Passw0rD'
-    )
-CURSOR = DATAB.cursor()
+DATAB = sql.connect(option_files='credentials.ini')
+CURSOR = DATAB.cursor(buffered=True)
 
 def make_hospital(span=2):
     'Returns values for hospital table row'
@@ -365,7 +360,6 @@ hospital = {
     }
 
 # Add new hospitals to database
-    # table = 'hospital(name, capacity, staff_num, zip_code)'
     # CURSOR.execute('SELECT COUNT(*) FROM hospital')
     # results, = CURSOR.fetchone()
 
@@ -376,57 +370,66 @@ hospital = {
 
     #     if input('y/n: ') == 'y': 
 
-    #         CURSOR.execute(f'INSERT INTO {table} VALUES{row}')
+    #         CURSOR.execute(
+    #             'INSERT INTO hospital(name, capacity, staff_num, zip_code) VALUES(%s, %s, %s, %s)', row
+    #             )
     #         results += 1
     #         print(results)
     #         DATAB.commit() 
 
 # Add new patients to existing hospitals
-SELECT = '''SELECT COUNT(patient_id), capacity FROM patient JOIN hospital ON patient.hospital_id=hospital.hospital_id WHERE patient.hospital_id={} GROUP BY patient.hospital_id'''
-table = 'patient(hospital_id, first_name, last_name, age, status)'
-CURSOR.execute(f'SELECT hospital_id FROM hospital WHERE zip_code LIKE "__{SEED:02}_"')
+SELECT = '''SELECT COUNT(patient_id) AS occupancy, capacity FROM patient JOIN hospital ON patient.hospital_id=hospital.hospital_id WHERE patient.hospital_id=%s GROUP BY patient.hospital_id HAVING (occupancy / capacity) < .7'''
+CURSOR.execute(
+    'SELECT hospital_id FROM hospital WHERE zip_code LIKE %s', 
+    (f'__{SEED:02}_',)
+    )
 hospital_ids = CURSOR.fetchall()
 
 for i in range(100000):
     
     hospital_id = random.choice(hospital_ids)
-    CURSOR.execute(SELECT.format(*hospital_id))
+    CURSOR.execute(SELECT, hospital_id)
     occupancy, capacity = CURSOR.fetchone()
     ratio = occupancy / capacity
     row = hospital_id + make_patient(ratio)
+    cuttoff = abs(np.random.normal(.7, .3, 1)) % 1
 
-    if ratio < abs(np.random.normal(.7, .3, 1)) % 1:
-        CURSOR.execute(f'INSERT INTO {table} VALUES{row}')
+    if ratio < cuttoff:
+        CURSOR.execute(
+            '''INSERT IGNORE INTO 
+            patient(hospital_id, first_name, last_name, age, status) 
+            VALUES(%s, %s, %s, %s, %s)''', row
+            )
         DATAB.commit()
 
 # Add new tests to existing patients
-    # table = 'test(patient_id, test_date, result, brand_id)'
-    # CURSOR.execute('SELECT patient_id FROM patient WHERE status>0')
-    # patient_ids = CURSOR.fetchall()
+    # CURSOR.execute('SELECT patient_id FROM patient WHERE status>0 ORDER BY RAND()')
 
-    # for i in range(10000):
+    # for patient_id in CURSOR.fetchmany(1000):
 
-    #     row = random.choice(patient_ids) + make_test()
-    #     CURSOR.execute(f'INSERT INTO {table} VALUES{row}')
+    #     row = patient_id + make_test()
+    #     CURSOR.execute(
+    #         'INSERT INTO test(patient_id, test_date, result, brand_id) VALUES(%s, %s, %s, %s)', row
+    #         )
     #     DATAB.commit()
 
 # Add new zip codes based on existing hospitals
-    # table = 'zip_code'
     # CURSOR.execute('SELECT DISTINCT zip_code FROM hospital')
 
     # for (zip_code,) in CURSOR.fetchall():
 
     #     row = make_zip(zip_code)
-    #     CURSOR.execute(f'INSERT IGNORE INTO {table} VALUES{row}')
+    #     CURSOR.execute(
+    #         'INSERT IGNORE INTO zip_code VALUES(%s, %s, %s, %s, %s)', row
+    #         )
+    #     DATAB.commit()
 
-    # DATAB.commit()
-
-# Prune hospital capacity to reduce necessary number of patients
+# Prune hospital capacities to reduce necessary number of patients
     # UPDATE = 'UPDATE hospital SET capacity=%s WHERE name=%s AND zip_code=%s'
-    # SELECT = 'SELECT capacity, name, zip_code FROM hospital WHERE capacity>2500'
+    # SELECT = 'SELECT capacity, name, zip_code FROM hospital WHERE capacity < 2000'
     # CURSOR.execute(SELECT)
 
     # for capacity, name, zip_code in CURSOR.fetchall():
-    #     capacity -= random.randint(5, 100) * 10
+    #     capacity -= random.randint(0, 5) * 10
     #     CURSOR.execute(UPDATE, (capacity, name, zip_code))
     # DATAB.commit()
