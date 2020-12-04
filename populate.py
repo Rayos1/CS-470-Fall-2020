@@ -165,11 +165,11 @@ hospital = {
 # Add new patients to existing hospitals
 SELECT = '''SELECT COUNT(patient_id) AS occupancy, capacity FROM patient JOIN hospital ON patient.hospital_id=hospital.hospital_id WHERE patient.hospital_id=%s GROUP BY patient.hospital_id HAVING (occupancy / capacity) < .8'''
 CURSOR.execute(
-    'SELECT hospital_id FROM hospital'# WHERE zip_code LIKE %s', (f'6_{SEED:02}_',)
+    'SELECT hospital_id FROM hospital WHERE capacity > 1700'# WHERE zip_code LIKE %s', (f'6_{SEED:02}_',)
     )
 hospital_ids = CURSOR.fetchall()
 
-for i in range(500000):
+for i in range(100000):
 
     try: 
         hospital_id = random.choice(hospital_ids)
