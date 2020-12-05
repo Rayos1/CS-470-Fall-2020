@@ -37,9 +37,9 @@ class CONNECT:
 
 class MainWindow(QMainWindow):
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         
-        super(MainWindow, self).__init__(*args, **kwargs)
+        super(MainWindow, self).__init__()
         self.setWindowTitle('Application')
         self.configure_gui()
         self.create_widgets()
@@ -54,9 +54,9 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(l)
 
-    def create_widgets(self): pass
+    def create_widgets(self): 
         
-        # self.connect = CONNECT()
+        self.connect = CONNECT()
 
 if __name__ == '__main__':
 
