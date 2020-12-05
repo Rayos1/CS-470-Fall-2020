@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar, QMessageBox
-from PyQt5.QtCore import Qt, QAbstractTableModel, QVariant
+from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
 import mysql.connector as sql
 
 class MySql:
@@ -19,6 +19,10 @@ class MySql:
                 if commit: return self.DATAB.commit()
                 if fetch: return self.CURSOR.fetchall()
                 return list()
+            
+            except sql.errors.ProgrammingError as error:
+
+                QMessageBox.warning(error.msg())
             
             except sql.errors.DatabaseError: 
                 
@@ -59,6 +63,7 @@ class App(QMainWindow):
         
         self.connect = MySql()
         self.textfield = QTextEdit(self)
+        self.textfield.setPlaceholderText('Enter query')
         self.enter = QPushButton('Enter', self)
         self.enter.pressed.connect(self.execute_query)
         self.table = Table(self)
@@ -101,8 +106,6 @@ class Table(QTableView):
 
         self.model.rows = rows
         self.model.columns = columns
-        for num, column in enumerate(columns, 1):
-            self.model.setHeaderData(num, Qt.Horizontal, column)
         self.model.layoutChanged.emit()
 
 class Model(QAbstractTableModel):
@@ -112,16 +115,25 @@ class Model(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent)
         self.rows = self.columns = []
         
-    # def flags(self, index): return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-    
     def rowCount(self, parent=None): return len(self.rows)
 
     def columnCount(self, parent=None): return len(self.columns)
 
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.columns[section]
+
+        return QAbstractTableModel.headerData(self, section, orientation, role)
+
     def data(self, index, role): 
-        
+
+        if role == Qt.DisplayRole:
+            
+            return str(self.rows[index.row()][index.column()])
+
         return QVariant()
-        
+    
 if __name__ == '__main__':
 
     Qapp = QApplication([])
