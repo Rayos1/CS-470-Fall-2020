@@ -3,7 +3,7 @@
 ## Milestone One 
 
 
-This milestons focuses on information collection and requirements, architecture, scope, ideas, platform, and team member roles.
+This milestone focuses on information collection and requirements, architecture, scope, ideas, platform, and team member roles.
 * [Report](Reports/Milestone%20One%20Report.pdf)
 
 ## Milstone Two
