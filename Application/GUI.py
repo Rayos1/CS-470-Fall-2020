@@ -68,9 +68,11 @@ class App(QMainWindow):
         self.layout.addWidget(self.enter)
         self.layout.addWidget(self.table)
 
-    def execute_query(self, event):
+    def execute_query(self):
 
-        rows = []
+        statement = self.textfield.toPlainText()
+        rows = self.connect.execute(statement, fetch=1)
+        columns = self.connect.CURSOR.column_names
         self.table.update(rows)
         self.statusbar.showMessage(
             f'{len(rows)} row(s) returned'
