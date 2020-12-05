@@ -11,10 +11,17 @@ def make_hospital(span=2):
     'Returns values for hospital table row'
 
     name = get_hospital()
+
+    # get random value with precision to the tenth's place
     capacity = random.randint(350, 750) * 10
+
+    # get random value with precision to the one's place
     staff = random.randint(750, 2500)
-    num = SEED // 10
-    range = sorted([num, (num+span) % 10])
+
+    # the first two numbers in zip code are randomly selected, 
+    # then the next two are based on a global random seed value
+    # defined on startup, and the final value is anothor pair of
+    #  random values
     zip_code = f'{random.randint(60, 69)}{SEED:02}{random.randint(0, 9)}'
 
     return name, capacity, staff, zip_code
