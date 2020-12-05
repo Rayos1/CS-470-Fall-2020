@@ -2,8 +2,13 @@ import os, random, datetime
 import numpy as np
 import mysql.connector as sql
 
+# change program directory so that file reading works
 os.chdir(__file__[:-11])
+
+# get global seed value
 SEED = random.randint(0, 99)
+
+# connect to mysql database and get cursor object
 DATAB = sql.connect(option_files='credentials.ini')
 CURSOR = DATAB.cursor(buffered=True)
 
