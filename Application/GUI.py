@@ -1,6 +1,5 @@
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar, QMessageBox
-from PyQt5.QtCore import Qt, QAbstractTableModel
+from PyQt5.QtCore import Qt, QAbstractTableModel, QVariant
 import mysql.connector as sql
 
 class MySql:
@@ -45,7 +44,7 @@ class App(QMainWindow):
         self.create_widgets()
         self.showMaximized()
 
-    def configure_gui(self): 
+    def configure_gui(self):
 
         self.center = QWidget()
         self.layout = QVBoxLayout()
@@ -56,13 +55,13 @@ class App(QMainWindow):
         self.setStatusBar(self.statusbar)
         self.statusbar.setFixedHeight(25)
 
-    def create_widgets(self): 
+    def create_widgets(self):
         
         self.connect = MySql()
         self.textfield = QTextEdit(self)
         self.enter = QPushButton('Enter', self)
         self.enter.pressed.connect(self.execute_query)
-        self.table = QTableView(self)
+        self.table = Table(self)
 
         self.layout.addWidget(self.textfield)
         self.layout.addWidget(self.enter)
@@ -70,13 +69,17 @@ class App(QMainWindow):
 
     def execute_query(self):
 
-        statement = self.textfield.toPlainText()
-        rows = self.connect.execute(statement, fetch=1)
-        columns = self.connect.CURSOR.column_names
-        self.table.update(rows)
-        self.statusbar.showMessage(
-            f'{len(rows)} row(s) returned'
-            )
+        statements = self.textfield.toPlainText().split(';')
+
+        for statement in statements:
+            
+            self.table.update(
+                self.connect.execute(statement, fetch=1),
+                self.connect.CURSOR.column_names
+                )
+            self.statusbar.showMessage(
+                f'{len(self.table.model.rows)} row(s) returned'
+                )
     
     def keyPressEvent(self, event):
     
@@ -88,35 +91,39 @@ class App(QMainWindow):
 
 class Table(QTableView):
 
-    def __init__(self, parent): 
+    def __init__(self, parent):
         
         super(Table, self).__init__(parent)
         self.model = Model(self)   
         self.setModel(self.model)
-        
-    def configure_gui(self): pass
 
-    def create_widgets(self): pass
+    def update(self, rows, columns):
 
-    def update(self, rows): self.model.rows = rows
+        self.model.rows = rows
+        self.model.columns = columns
+        for num, column in enumerate(columns, 1):
+            self.model.setHeaderData(num, Qt.Horizontal, column)
+        self.model.layoutChanged.emit()
 
 class Model(QAbstractTableModel):
     
     def __init__(self, parent):
 
         QAbstractTableModel.__init__(self, parent)
-        self.rows = []
+        self.rows = self.columns = []
         
     # def flags(self, index): return Qt.ItemIsEnabled | Qt.ItemIsSelectable
     
     def rowCount(self, parent=None): return len(self.rows)
 
-    def columnCount(self, parent=None): return len(self.rows[0])
+    def columnCount(self, parent=None): return len(self.columns)
 
-    def data(self, index, role): pass
+    def data(self, index, role): 
+        
+        return QVariant()
         
 if __name__ == '__main__':
 
-    Qapp = QApplication(sys.argv)
+    Qapp = QApplication([])
     app = App()
     Qapp.exec_()
