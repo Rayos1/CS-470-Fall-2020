@@ -1,9 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar
 from PyQt5.QtCore import Qt
 import mysql.connector as sql
 
-class CONNECT:
+class MySql:
     
     def __init__(self):
 
@@ -35,11 +35,11 @@ class CONNECT:
     
     def close(self): self.DATAB.close()
 
-class MainWindow(QMainWindow):
+class App(QMainWindow):
     
     def __init__(self):
         
-        super(MainWindow, self).__init__()
+        super(App, self).__init__()
         self.setWindowTitle('Application')
         self.configure_gui()
         self.create_widgets()
@@ -47,19 +47,43 @@ class MainWindow(QMainWindow):
 
     def configure_gui(self): 
 
-        l = QLabel('My simple app.')
-        l.setAlignment(Qt.AlignCenter)
-        l.setMargin(10)
-        l.setStyleSheet('font: 30px')
-
-        self.setCentralWidget(l)
+        self.center = QWidget()
+        self.layout = QVBoxLayout()
+        self.center.setLayout(self.layout)
+        self.setCentralWidget(self.center)
+        
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
+        self.statusbar.setFixedHeight(25)
 
     def create_widgets(self): 
         
-        self.connect = CONNECT()
+        # self.connect = MySql()
+        self.textfield = QTextEdit(self)
+        self.enter = QPushButton('Enter', self)
+        self.enter.pressed.connect(self.execute_query)
+        self.table = QTableView(self)
+
+        self.layout.addWidget(self.textfield)
+        self.layout.addWidget(self.enter)
+        self.layout.addWidget(self.table)
+
+    def execute_query(self, event):
+
+        pass
+
+class Table(QTableView):
+
+    def __init__(self, parent): 
+        
+        super(Table, self).__init__(parent)
+        
+    def configure_gui(self): pass
+
+    def create_widgets(self): pass
 
 if __name__ == '__main__':
 
-    app = QApplication(sys.argv)
-    w = MainWindow()
-    app.exec_()
+    Qapp = QApplication(sys.argv)
+    app = App()
+    Qapp.exec_()
