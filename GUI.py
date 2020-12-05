@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget,  QVBoxLayout, QHBoxLayout, QStackedWidget, QMessageBox, QStatusBar, QGroupBox, QPushButton, QAction, QSizePolicy
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 from PyQt5.QtCore import Qt
 import mysql.connector as sql
 
@@ -33,3 +34,29 @@ class CONNECT:
     def commit(self): self.DATAB.commit()
     
     def close(self): self.DATAB.close()
+
+class MainWindow(QMainWindow):
+    
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.setWindowTitle('Application')
+        self.configure_gui()
+        self.create_widgets()
+        self.showMaximized()
+
+    def configure_gui(self): 
+
+        l = QLabel('My simple app.')
+        l.setAlignment(Qt.AlignCenter)
+        l.setMargin(10)
+        l.setStyleSheet('font: 30px')
+
+        self.setCentralWidget(l)
+
+    def create_widgets(self): pass
+
+if __name__ == '__main__':
+
+    app = QApplication(sys.argv)
+    w = MainWindow()
+    app.exec_()
