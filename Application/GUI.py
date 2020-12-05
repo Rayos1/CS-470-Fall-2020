@@ -1,6 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar, QMessageBox
+from PyQt5.QtCore import Qt, QAbstractTableModel
 import mysql.connector as sql
 
 class MySql:
@@ -58,7 +58,7 @@ class App(QMainWindow):
 
     def create_widgets(self): 
         
-        # self.connect = MySql()
+        self.connect = MySql()
         self.textfield = QTextEdit(self)
         self.enter = QPushButton('Enter', self)
         self.enter.pressed.connect(self.execute_query)
@@ -70,18 +70,49 @@ class App(QMainWindow):
 
     def execute_query(self, event):
 
-        pass
+        rows = []
+        self.table.update(rows)
+        self.statusbar.showMessage(
+            f'{len(rows)} row(s) returned'
+            )
+    
+    def keyPressEvent(self, event):
+    
+        key_press = event.key()
+        modifiers = event.modifiers()
+        alt = modifiers == Qt.AltModifier
+
+        if key_press == Qt.Key_Escape: self.close()
 
 class Table(QTableView):
 
     def __init__(self, parent): 
         
         super(Table, self).__init__(parent)
+        self.model = Model(self)   
+        self.setModel(self.model)
         
     def configure_gui(self): pass
 
     def create_widgets(self): pass
 
+    def update(self, rows): self.model.rows = rows
+
+class Model(QAbstractTableModel):
+    
+    def __init__(self, parent):
+
+        QAbstractTableModel.__init__(self, parent)
+        self.rows = []
+        
+    # def flags(self, index): return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+    
+    def rowCount(self, parent=None): return len(self.rows)
+
+    def columnCount(self, parent=None): return len(self.rows[0])
+
+    def data(self, index, role): pass
+        
 if __name__ == '__main__':
 
     Qapp = QApplication(sys.argv)
