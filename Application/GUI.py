@@ -1,42 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget,  QPushButton, QTextEdit, QTableView, QStatusBar, QMessageBox
-from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
+from PyQt5.QtCore import Qt, QAbstractTableModel, QVariant
 import mysql.connector as sql
-
-class MySql:
-    
-    def __init__(self):
-
-        self.DATAB = sql.connect(option_files='credentials.ini')
-        self.CURSOR = self.DATAB.cursor(buffered=True)
-
-    def execute(self, statement, arguments=None, many=0, commit=0, fetch=0):
-
-        for _ in range(10):
-            try:
-                if many: self.CURSOR.executemany(statement, arguments)
-                else: self.CURSOR.execute(statement, arguments)
-
-                if commit: return self.DATAB.commit()
-                if fetch: return self.CURSOR.fetchall()
-                return list()
-            
-            except sql.errors.ProgrammingError as error:
-
-                QMessageBox.warning(error.msg())
-            
-            except sql.errors.DatabaseError: 
-                
-                self.reconnect()
-
-        return list()
-
-    def reconnect(self, attempts=5, time=15):
-
-        self.DATAB.reconnect(attempts, time)
-
-    def commit(self): self.DATAB.commit()
-    
-    def close(self): self.DATAB.close()
 
 class App(QMainWindow):
     
@@ -61,8 +25,9 @@ class App(QMainWindow):
 
     def create_widgets(self):
         
-        self.connect = MySql()
+        self.connect = MySql(self)
         self.textfield = QTextEdit(self)
+        self.textfield.setMaximumHeight(250)
         self.textfield.setPlaceholderText('Enter query')
         self.enter = QPushButton('Enter', self)
         self.enter.pressed.connect(self.execute_query)
@@ -94,8 +59,46 @@ class App(QMainWindow):
 
         if key_press == Qt.Key_Escape: self.close()
 
-class Table(QTableView):
+class MySql(object):
+    
+    def __init__(self, parent):
 
+        self.parent = parent
+        self.DATAB = sql.connect(option_files='credentials.ini')
+        self.CURSOR = self.DATAB.cursor(buffered=True)
+
+    def execute(self, statement, arguments=None, many=0, commit=0, fetch=0):
+
+        for _ in range(10):
+            try:
+                if many: self.CURSOR.executemany(statement, arguments)
+                else: self.CURSOR.execute(statement, arguments)
+
+                if commit: return self.DATAB.commit()
+                if fetch: return self.CURSOR.fetchall()
+                return list()
+            
+            except sql.errors.ProgrammingError as error:
+
+                QMessageBox().warning(self.parent, 'Program Error', error.msg)
+                break
+            
+            except sql.errors.DatabaseError: 
+                
+                self.reconnect()
+
+        return list()
+
+    def reconnect(self, attempts=5, time=15):
+
+        self.DATAB.reconnect(attempts, time)
+
+    def commit(self): self.DATAB.commit()
+    
+    def close(self): self.DATAB.close()
+
+class Table(QTableView):
+    
     def __init__(self, parent):
         
         super(Table, self).__init__(parent)
@@ -105,6 +108,7 @@ class Table(QTableView):
     def update(self, rows, columns):
 
         self.model.rows = rows
+        if not rows: columns = []
         self.model.columns = columns
         self.model.layoutChanged.emit()
 
