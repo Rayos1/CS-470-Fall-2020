@@ -2,6 +2,10 @@ import os, random, datetime
 import numpy as np
 import mysql.connector as sql
 
+'''
+A suite of convenience functions for inserting rows into database
+'''
+
 # change program directory so that file reading works
 os.chdir(__file__[:-11])
 
