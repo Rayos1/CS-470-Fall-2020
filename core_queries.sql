@@ -1,5 +1,5 @@
 /* Return total capacity of all hospitals */
-SELECT SUM(capacity) FROM hospital
+SELECT SUM(capacity) AS total_capacity FROM hospital
 
 /* Return hospital occupancy, capacity and name */
 SELECT COUNT(patient_id) AS occupancy, capacity, name FROM patient 
