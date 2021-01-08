@@ -12,3 +12,4 @@ This milestone includes the creation of ER/schema diagrams, relational algebra, 
 * [Report](https://docs.google.com/document/d/12RYkWjz5F-jLokxXthn66EKp4cQCUk1SCy0JNhrsmSw/edit?usp=sharing)
 
 ## Final Report
+The final report. Includes modifications to Milestone Two Report, as well as presentation PowerPoint and video.
