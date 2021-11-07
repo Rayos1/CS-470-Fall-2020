@@ -1,5 +1,5 @@
 # CS-470-Database-Mgmt-Systems
-
+Note: the Amazon account housing the database has been closed as of 7/24/2021.
 ## Milestone One 
 
 
